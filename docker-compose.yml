@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  beststoremvc:
+    image: ${DOCKER_REGISTRY-}beststoremvc
+    build:
+      context: .
+      dockerfile: BestStoreMVC/Dockerfile
+    ports:
+      - "5096:5096"
+    environment:
+      - ASPNETCORE_URLS=http://*:5096
+      - ConnectionStrings__DefaultConnection=Server=mssql;Database=BestStoreDb;Trusted_Connection=false;MultipleActiveResultSets=true;Encrypt=false;user id=sa;password=Str0ngPa5sVvorcl;
+    depends_on:
+      - mssql
+    networks:
+      - bestsore-network
+  mssql:
+    image: "mcr.microsoft.com/mssql/server:2019-latest"
+    container_name: sql_server
+    hostname: mssql
+    user: "0"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Str0ngPa5sVvorcl
+      - MSSQL_DATA_DIR=/var/opt/sqlserver/data
+      - MSSQL_LOG_DIR=/var/opt/sqlserver/log
+      - MSSQL_BACKUP_DIR=/var/opt/sqlserver/backup
+    restart: unless-stopped
+    ports:
+      - "1401:1433"
+    volumes:
+      - sqlsystem:/var/opt/mssql/
+      - sqldata:/var/opt/sqlserver/data
+      - sqllog:/var/opt/sqlserver/log
+      - sqlbackup:/var/opt/sqlserver/backup
+    networks:
+      - bestsore-network
+
+networks:
+  bestsore-network:
+    driver: bridge
+
+volumes:
+  sqlsystem:
+  sqldata:
+  sqllog:
+  sqlbackup:

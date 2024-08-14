@@ -1,0 +1,115 @@
+name: dockercompose17487994346016360454
+services:
+  beststoremvc:
+    build:
+      context: D:\Tinh\code\BestStoreMVC
+      dockerfile: BestStoreMVC/Dockerfile
+    depends_on:
+      mssql:
+        condition: service_started
+        required: true
+      seq_logs:
+        condition: service_started
+        required: true
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://*:5096
+    image: beststoremvc
+    networks:
+      bestsore-network: null
+    ports:
+      - mode: ingress
+        target: 5096
+        published: "5096"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\Users\admin\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\admin\AppData\Roaming/ASP.NET/Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+  cloudbeaver:
+    container_name: cloudbeaver
+    image: dbeaver/cloudbeaver
+    networks:
+      bestsore-network: null
+    ports:
+      - mode: ingress
+        target: 8978
+        published: "8978"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: volume
+        source: cloudbeaver-data
+        target: /opt/cloudbeaver/workspace
+        volume: {}
+  mssql:
+    container_name: sql_server
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_BACKUP_DIR: /var/opt/sqlserver/backup
+      MSSQL_DATA_DIR: /var/opt/sqlserver/data
+      MSSQL_LOG_DIR: /var/opt/sqlserver/log
+      MSSQL_SA_PASSWORD: Str0ngPa5sVvorcl
+    hostname: mssql
+    image: mcr.microsoft.com/mssql/server
+    networks:
+      bestsore-network: null
+    ports:
+      - mode: ingress
+        target: 1433
+        published: "1401"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: sqlsystem
+        target: /var/opt/mssql
+        volume: {}
+      - type: volume
+        source: sqldata
+        target: /var/opt/sqlserver/data
+        volume: {}
+      - type: volume
+        source: sqllog
+        target: /var/opt/sqlserver/log
+        volume: {}
+      - type: volume
+        source: sqlbackup
+        target: /var/opt/sqlserver/backup
+        volume: {}
+  seq_logs:
+    environment:
+      ACCEPT_EULA: "Y"
+    image: datalust/seq
+    networks:
+      bestsore-network: null
+    ports:
+      - mode: ingress
+        target: 80
+        published: "5342"
+        protocol: tcp
+    restart: unless-stopped
+networks:
+  bestsore-network:
+    name: dockercompose17487994346016360454_bestsore-network
+    driver: bridge
+volumes:
+  cloudbeaver-data:
+    name: dockercompose17487994346016360454_cloudbeaver-data
+  sqlbackup:
+    name: dockercompose17487994346016360454_sqlbackup
+  sqldata:
+    name: dockercompose17487994346016360454_sqldata
+  sqllog:
+    name: dockercompose17487994346016360454_sqllog
+  sqlsystem:
+    name: dockercompose17487994346016360454_sqlsystem
